@@ -28,7 +28,7 @@ struct _tree
 static void _rebalance (struct _tree **a);
 static void _rotateLeft (struct _tree **a);
 static void _rotateRight (struct _tree **a);
-// static struct _tree * _treeFind(struct _tree ** t, char *word);
+static struct _tree * _treeFind(struct _tree *t, char *word);
 static void treeRemove (tree ** a, size_t value);
 static struct _tree *treeGetMax (struct _tree *t);
 static struct node *treeCreateStock (char *word,
@@ -41,33 +41,41 @@ createTree (void)
     return NULL;
 }
 
-// void treeIntersect(tree ** t, char *word)
-// {
-//     stringToLower(word);
+void treeIntersect(tree ** t, char *word)
+{
+    stringToLowerVoid(word);
+    tree *foundTree = _treeFind(*t, word);
+    if(foundTree)
+    {
+        foundTree->data->index += 1;
+    }
+}
 
-//     _treeFind(tree ** t, char *word);
-// }
+static struct _tree * _treeFind(struct _tree *t, char *word)
+{
+    if (!t)
+    {
+        return NULL;
+    }
 
-// static struct _tree * _treeFind(struct _tree ** t, char *word)
-// {
-//     int cmpVal = strcmp(word, t->data->word);
+    int cmpVal = strcmp(word, t->data->lowWord);
 
-//     // Inserting the node in the correct spot on the tree
-//     if (cmpVal < 0)
-//     {
-//         return treeFind (t->left, word);
-//     }
-//     else if(cmpVal == 0)
-//     {
-//         return *t;
-//     }
-//     else
-//     {
-//         return treeFind (t->right, word);
-//     }
+    // Inserting the node in the correct spot on the tree
+    if (cmpVal < 0)
+    {
+        return _treeFind (t->left, word);
+    }
+    else if(cmpVal == 0)
+    {
+        return t;
+    }
+    else
+    {
+        return _treeFind (t->right, word);
+    }
 
-//     return NULL;
-// }
+    return NULL;
+}
 
 void processLine (tree ** t, char *line)
 {
@@ -175,7 +183,7 @@ treePrint (const tree * a)
         return;
     }
     treePrint (a->left);
-    //printf ("%zu ", (a->data->index));
+    printf ("%zu ", (a->data->index));
     printf ("%s\n", a->data->word);
     treePrint (a->right);
 }
@@ -309,7 +317,7 @@ treeCreateStock (char *word, size_t value)
     // Checking
     if (!newStock->lowWord)
     {
-        free(newStock->word);
+        free (newStock->word);
         free (newStock);
         return NULL;
     }

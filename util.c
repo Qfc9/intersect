@@ -36,6 +36,16 @@ char * stringToLower(char *word)
     return lowWord;
 }
 
+void stringToLowerVoid(char *word)
+{
+    for (size_t i = 0; i < strlen(word); i++)
+    {
+        word[i] = tolower(word[i]);
+    }
+    word[strlen(word)] = '\0';
+}
+
+
 // Removes extra chars at the end of stdin
 void
 getCharClean (void)

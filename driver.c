@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
     getData(fp, &fileData, &fileDataSz, &fileDataCap);
 
     fclose(fp);
-    
+
     // Creating the market tree
     tree *market = createTree ();
 
@@ -37,6 +37,11 @@ int main(int argc, char *argv[])
     {
         processLine (&market, fileData[n]);
     }
+
+    char test[64];
+    strcpy(test, "yam");
+    test[4] = '\0';
+    treeIntersect(&market, test);
 
     treePrint (market);
     printf ("\n");

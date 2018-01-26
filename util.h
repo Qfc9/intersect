@@ -6,6 +6,7 @@
 
 size_t wordValue(char *word);
 char * stringToLower(char *word);
+void stringToLowerVoid(char *word);
 void getCharClean (void);
 
 #endif
