@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "util.h"
 #include "tree.h"
 
 // node Storage
@@ -53,8 +54,7 @@ void processLine (tree ** t, char *line)
     // Continueing from the last marked spot, getting the company name
     while (sscanf (line + tracker, "%254s%n ", buf, &tempTracker) > 0)
     {
-        printf("%s\n", buf);
-        
+        treeInsert (t, buf, wordValue(buf));
         tracker += tempTracker;
     }
 } 
