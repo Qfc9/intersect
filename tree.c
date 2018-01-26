@@ -9,9 +9,8 @@
 // node Storage
 struct node
 {
-    char symbol[6];
     size_t index;
-    char *name;
+    char *word;
 };
 
 // Hidden tree struct
@@ -27,9 +26,9 @@ struct _tree
 static void _rebalance (struct _tree **a);
 static void _rotateLeft (struct _tree **a);
 static void _rotateRight (struct _tree **a);
-static void treeRemove (tree ** a, char *ticker, size_t value);
+static void treeRemove (tree ** a, size_t value);
 static struct _tree *treeGetMax (struct _tree *t);
-static struct node *treeCreateStock (char *symbol, char *name,
+static struct node *treeCreateStock (char *word,
               size_t price);
 
 // Creating a new tree
@@ -68,7 +67,7 @@ treeHeight (tree * a)
 
 // Inserting a new node into a tree
 void
-treeInsert (tree ** a, char *symbol, char *name, size_t price)
+treeInsert (tree ** a, char *word, size_t price)
 {
     if (!a)
     {
@@ -87,7 +86,7 @@ treeInsert (tree ** a, char *symbol, char *name, size_t price)
         }
 
         // Making new node 
-        struct node *newStock = treeCreateStock (symbol, name, price);
+        struct node *newStock = treeCreateStock (word, price);
         // Checking if malloced properly
         if (!newStock)
         {
@@ -103,11 +102,11 @@ treeInsert (tree ** a, char *symbol, char *name, size_t price)
     // Inserting the node in the correct spot on the tree
     if (price <= t->data->index)
     {
-        treeInsert (&t->left, symbol, name, price);
+        treeInsert (&t->left, word, price);
     }
     else
     {
-        treeInsert (&t->right, symbol, name, price);
+        treeInsert (&t->right, word, price);
     }
 
     // Rebalancing the tree
@@ -123,10 +122,9 @@ treePrint (const tree * a)
         return;
     }
     treePrint (a->left);
-    printf ("%s ", a->data->symbol);
     printf ("%zu.", (a->data->index / 100));
     printf ("%02zu ", (a->data->index % 100));
-    printf ("%s\n", a->data->name);
+    printf ("%s\n", a->data->word);
     treePrint (a->right);
 }
 
@@ -141,14 +139,14 @@ treeDisassemble (tree * a)
 
     treeDisassemble (a->left);
     treeDisassemble (a->right);
-    free (a->data->name);
+    free (a->data->word);
     free (a->data);
     free (a);
 }
 
 // Removed Item from tree
 static void
-treeRemove (tree ** a, char *ticker, size_t value)
+treeRemove (tree ** a, size_t value)
 {
     if (!a)
     {
@@ -162,12 +160,12 @@ treeRemove (tree ** a, char *ticker, size_t value)
     struct _tree *t = *a;
 
     // If the symbol and money values are the same, Its a match
-    if ((t->data->index == value) && (strcmp (t->data->symbol, ticker) == 0))
+    if ((t->data->index == value))
     {
         // If no children
         if (!t->left && !t->right)
         {
-            free (t->data->name);
+            free (t->data->word);
             free (t->data);
             free (t);
 
@@ -185,7 +183,7 @@ treeRemove (tree ** a, char *ticker, size_t value)
             {
                 *a = t->right;
             }
-            free (t->data->name);
+            free (t->data->word);
             free (t->data);
             free (t);
         }
@@ -194,15 +192,15 @@ treeRemove (tree ** a, char *ticker, size_t value)
         {
             // Get the greatest value 
             tree *newValue = treeGetMax (t->left);
-            free (t->data->name);
+            free (t->data->word);
             free (t->data);
 
             // Move greatest value to old stock position
-            struct node *newStock = treeCreateStock (newValue->data->symbol, newValue->data->name, newValue->data->index);
+            struct node *newStock = treeCreateStock (newValue->data->word, newValue->data->index);
             t->data = newStock;
 
             // Remove old stock and rebalance 
-            treeRemove (&t->left, newValue->data->symbol, newValue->data->index);
+            treeRemove (&t->left, newValue->data->index);
             _rebalance (a);
         }
 
@@ -210,11 +208,11 @@ treeRemove (tree ** a, char *ticker, size_t value)
     // Keep Searching
     else if (t->data->index < value)
     {
-        treeRemove (&t->right, ticker, value);
+        treeRemove (&t->right, value);
     }
     else
     {
-        treeRemove (&t->left, ticker, value);
+        treeRemove (&t->left, value);
     }
 }
 
@@ -234,7 +232,7 @@ treeGetMax (struct _tree *t)
 
 // Returns a node * with all the information set
 static struct node *
-treeCreateStock (char *symbol, char *name, size_t price)
+treeCreateStock (char *word, size_t price)
 {
     // Mallocing 
     struct node *newStock = malloc (sizeof (*newStock));
@@ -244,18 +242,14 @@ treeCreateStock (char *symbol, char *name, size_t price)
         return NULL;
     }
 
-    // Setting name
-    newStock->name = strdup (name);
+    // Setting word
+    newStock->word = strdup (word);
     // Checking
-    if (!newStock->name)
+    if (!newStock->word)
     {
         free (newStock);
         return NULL;
     }
-
-    // Setting symbol
-    strncpy (newStock->symbol, symbol, sizeof (newStock->symbol) - 1);
-    newStock->symbol[sizeof (newStock->symbol) - 1] = '\0';
 
     // Setting price
     newStock->index = price;
