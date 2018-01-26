@@ -56,8 +56,7 @@ void processLine (tree ** t, char *line)
     // Continueing from the last marked spot, getting the company name
     while (sscanf (line + tracker, "%254s%n ", buf, &tempTracker) > 0)
     {
-        //treeInsert (t, buf, wordValue(buf));
-        treeInsert (t, buf, 3);
+        treeInsert (t, buf, stringToLower(buf), 3);
         tracker += tempTracker;
     }
 
@@ -82,9 +81,9 @@ treeHeight (tree * a)
 
 // Inserting a new node into a tree
 void
-treeInsert (tree ** t, char *word, size_t value)
+treeInsert (tree ** t, char *word, char *lowWord, size_t value)
 {
-    if (!t)
+    if (!t || !lowWord)
     {
         return;
     }
@@ -97,6 +96,7 @@ treeInsert (tree ** t, char *word, size_t value)
         // Checking if calloc properly
         if (!*t)
         {
+            free(lowWord);
             return;
         }
 
@@ -106,27 +106,31 @@ treeInsert (tree ** t, char *word, size_t value)
         if (!newStock)
         {
             free (*t);
+            free(lowWord);
             return;
         }
         (*t)->data = newStock;
+
+        free(lowWord);
         return;
     }
 
     tree *subTree = *t;
 
-    int cmpVal = strcmp(word, subTree->data->word);
+    int cmpVal = strcmp(lowWord, subTree->data->word);
     // Inserting the node in the correct spot on the tree
     if (cmpVal < 0)
     {
-        treeInsert (&subTree->left, word, value);
+        treeInsert (&subTree->left, word, lowWord, value);
     }
     else if(cmpVal == 0)
     {
+        free(lowWord);
         return;
     }
     else
     {
-        treeInsert (&subTree->right, word, value);
+        treeInsert (&subTree->right, word, lowWord, value);
     }
 
     // Rebalancing the tree

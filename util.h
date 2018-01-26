@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 size_t wordValue(char *word);
+char * stringToLower(char *word);
 void getCharClean (void);
 
 #endif
