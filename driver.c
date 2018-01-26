@@ -29,21 +29,30 @@ int main(int argc, char *argv[])
 
     fclose(fp);
 
-    // Creating the market tree
-    tree *market = createTree ();
+    // Creating the intersectTree tree
+    tree *intersectTree = createTree ();
 
     // Adding all the values from the file into the tree
     for (unsigned int n = 0; n < fileDataSz; n++)
     {
-        processLine (&market, fileData[n]);
+        processLine (&intersectTree, fileData[n]);
     }
 
-    char test[64];
-    strcpy(test, "yam");
-    test[4] = '\0';
-    treeIntersect(&market, test);
 
-    treePrint (market);
+    for (int i = 2; i < argc; ++i)
+    {
+        fp = fopen(argv[i], "r");
+        if(!fp)
+        {
+            continue;
+        }
+
+        treeIntersects(&intersectTree, fp, i);
+
+        fclose(fp);
+    }
+
+    treePrint (intersectTree);
     printf ("\n");
 
     // Freeing input mallocs
@@ -54,7 +63,7 @@ int main(int argc, char *argv[])
     free (fileData);
 
     // Freeing the tree
-    treeDisassemble (market);
+    treeDisassemble (intersectTree);
 
     return 0;
 }

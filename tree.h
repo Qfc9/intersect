@@ -10,6 +10,6 @@ size_t treeHeight (tree * a);
 void treeInsert (tree ** t, char *word, char *lowWord, size_t value);
 void treePrint (const tree * a);
 void treeDisassemble (tree * a);
-void treeIntersect(tree ** t, char *word);
+void treeIntersects(tree ** t, FILE *fp, size_t index);
 
 #endif

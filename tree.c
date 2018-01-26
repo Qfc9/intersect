@@ -3,6 +3,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "util.h"
 #include "tree.h"
@@ -28,6 +29,7 @@ struct _tree
 static void _rebalance (struct _tree **a);
 static void _rotateLeft (struct _tree **a);
 static void _rotateRight (struct _tree **a);
+static void treeMarkIntersects(tree ** t, char *word);
 static struct _tree * _treeFind(struct _tree *t, char *word);
 static void treeRemove (tree ** a, size_t value);
 static struct _tree *treeGetMax (struct _tree *t);
@@ -41,7 +43,49 @@ createTree (void)
     return NULL;
 }
 
-void treeIntersect(tree ** t, char *word)
+void treeIntersects(tree ** t, FILE *fp, size_t index)
+{
+    if (!t || !fp)
+    {
+        return;
+    }
+
+    int wordSz = 0;
+    char *word = NULL;
+
+    // Getting all the data in the file given
+    char buf = 0;
+    while (buf != EOF)
+    {
+        buf = fgetc (fp);
+        wordSz = 0;
+        word = malloc(sizeof(*word) * 255);
+        if(!word)
+        {
+            break;
+        }
+
+        // Dynamicly allocating each line in the file as a string
+        while (buf != EOF && buf != 10 && buf != 35 && isgraph(buf))
+        {
+            word[wordSz++] = buf;
+            buf = fgetc (fp);
+        }
+        word[wordSz++] = '\0';
+
+        if(wordSz > 0)
+        {
+            treeMarkIntersects(t, word);
+        }
+
+        free(word);
+    }
+
+}
+
+
+
+static void treeMarkIntersects(tree ** t, char *word)
 {
     stringToLowerVoid(word);
     tree *foundTree = _treeFind(*t, word);
@@ -96,7 +140,7 @@ void processLine (tree ** t, char *line)
     while (sscanf (line + tracker, "%254s%n ", buf, &tempTracker) > 0)
     {
         lowBuf = stringToLower(buf);
-        treeInsert (t, buf, lowBuf, 3);
+        treeInsert (t, buf, lowBuf, 1);
         tracker += tempTracker;
         free(lowBuf);
     }
