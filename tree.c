@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "util.h"
 #include "tree.h"
 
 // Company Storage
@@ -70,10 +69,10 @@ processCompany (tree ** t, char *line)
     }
 
   // Verifing the ticker
-  if (invalidTicker (ticker))
-    {
-      return;
-    }
+  // if (invalidTicker (ticker))
+  //   {
+  //     return;
+  //   }
 
   // Continueing from the last marked spot, getting the company name
   while (sscanf (line + tracker, "%63s%n", buf, &tempTracker) > 0)
@@ -204,7 +203,7 @@ treeUpdate (tree ** t, char *ticker, char *name, double value)
   // Searching the tree for a ticker
   tree *result = treeSearchForName (*t, ticker);
 
-  size_t covertedVal = dollarsToCents (value);
+  size_t covertedVal = 0;
   size_t newValue = 0;
 
   // If that ticker doesn't exsist add it
