@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "getData.h"
+#include "readIn.h"
 
 void getData(FILE *fp, char ***data, size_t *sz, size_t *cap)
 {
