@@ -29,7 +29,7 @@ static void _rotateRight (struct _tree **a);
 static void treeRemove (tree ** a, size_t value);
 static struct _tree *treeGetMax (struct _tree *t);
 static struct node *treeCreateStock (char *word,
-              size_t price);
+              size_t value);
 
 // Creating a new tree
 tree *
@@ -38,18 +38,27 @@ createTree (void)
     return NULL;
 }
 
-// Extracts node info from a string
-void
-processnode (tree ** t, char *line)
+void processLine (tree ** t, char *line)
 {
     if (!t)
     {
         return;
     }
 
-    size_t value = 0;
+    char buf[255];
 
-}
+    int tracker = 0;
+    int tempTracker = 0;
+
+    // Continueing from the last marked spot, getting the company name
+    while (sscanf (line + tracker, "%254s%n ", buf, &tempTracker) > 0)
+    {
+        printf("%s\n", buf);
+        
+        tracker += tempTracker;
+    }
+} 
+
 
 // Geting the height of a tree
 size_t
@@ -67,50 +76,50 @@ treeHeight (tree * a)
 
 // Inserting a new node into a tree
 void
-treeInsert (tree ** a, char *word, size_t price)
+treeInsert (tree ** t, char *word, size_t value)
 {
-    if (!a)
+    if (!t)
     {
         return;
     }
 
     // If the tree is null make a root
-    if (!*a)
+    if (!*t)
     {
-        *a = calloc (1, sizeof (**a));
+        *t = calloc (1, sizeof (**t));
 
         // Checking if calloc properly
-        if (!*a)
+        if (!*t)
         {
             return;
         }
 
         // Making new node 
-        struct node *newStock = treeCreateStock (word, price);
+        struct node *newStock = treeCreateStock (word, value);
         // Checking if malloced properly
         if (!newStock)
         {
-            free (*a);
+            free (*t);
             return;
         }
-        (*a)->data = newStock;
+        (*t)->data = newStock;
         return;
     }
 
-    tree *t = *a;
+    tree *subTree = *t;
 
     // Inserting the node in the correct spot on the tree
-    if (price <= t->data->index)
+    if (value <= subTree->data->index)
     {
-        treeInsert (&t->left, word, price);
+        treeInsert (&subTree->left, word, value);
     }
     else
     {
-        treeInsert (&t->right, word, price);
+        treeInsert (&subTree->right, word, value);
     }
 
     // Rebalancing the tree
-    _rebalance (a);
+    _rebalance (t);
 }
 
 // Printing all the values on the tree
@@ -232,7 +241,7 @@ treeGetMax (struct _tree *t)
 
 // Returns a node * with all the information set
 static struct node *
-treeCreateStock (char *word, size_t price)
+treeCreateStock (char *word, size_t value)
 {
     // Mallocing 
     struct node *newStock = malloc (sizeof (*newStock));
@@ -251,8 +260,8 @@ treeCreateStock (char *word, size_t price)
         return NULL;
     }
 
-    // Setting price
-    newStock->index = price;
+    // Setting value
+    newStock->index = value;
 
     return newStock;
 }

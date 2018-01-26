@@ -4,10 +4,10 @@
 #include <stdlib.h>
 
 typedef struct _tree tree;
+void processLine (tree ** t, char *line);
 tree *createTree (void);
-void processCompany (tree ** t, char *line);
 size_t treeHeight (tree * a);
-void treeInsert (tree ** a, char *word, size_t price);
+void treeInsert (tree ** t, char *word, size_t index);
 void treePrint (const tree * a);
 void treeDisassemble (tree * a);
 

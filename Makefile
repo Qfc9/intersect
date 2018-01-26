@@ -7,7 +7,7 @@ DEBUG = -DDEBUG -g
 
 BINS = intersect
 
-FILES = driver.o readIn.o tree.o util.o
+FILES = driver.o readIn.o tree.o
 
 all: build
 

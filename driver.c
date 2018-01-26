@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
     // Adding all the values from the file into the tree
     for (unsigned int n = 0; n < fileDataSz; n++)
     {
-        processCompany (&market, fileData[n]);
+        processLine (&market, fileData[n]);
     }
 
     treePrint (market);
