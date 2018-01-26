@@ -30,9 +30,9 @@ static void _rebalance (struct _tree **a);
 static void _rotateLeft (struct _tree **a);
 static void _rotateRight (struct _tree **a);
 static void treeMarkIntersects(tree ** t, char *word);
+static void removeTreeIntersects(struct _tree **t, size_t index);
 static struct _tree * _treeFind(struct _tree *t, char *word);
 static void treeRemove (tree ** a, size_t value);
-static struct _tree *treeGetMax (struct _tree *t);
 static struct node *treeCreateStock (char *word,
               size_t value);
 
@@ -80,10 +80,20 @@ void treeIntersects(tree ** t, FILE *fp, size_t index)
 
         free(word);
     }
-
+    removeTreeIntersects(t, index - 1);
 }
 
+static void removeTreeIntersects(struct _tree **t, size_t index)
+{
+    if (!t || !*t)
+    {
+        return;
+    }
 
+    removeTreeIntersects (&(*t)->left, index);
+    removeTreeIntersects (&(*t)->right, index);
+    treeRemove(t, index);
+}
 
 static void treeMarkIntersects(tree ** t, char *word)
 {
@@ -144,9 +154,6 @@ void processLine (tree ** t, char *line)
         tracker += tempTracker;
         free(lowBuf);
     }
-
-    // REMOVE THIS
-    treeRemove(NULL, 0);
 } 
 
 
@@ -227,7 +234,6 @@ treePrint (const tree * a)
         return;
     }
     treePrint (a->left);
-    printf ("%zu ", (a->data->index));
     printf ("%s\n", a->data->word);
     treePrint (a->right);
 }
@@ -271,11 +277,11 @@ treeRemove (tree ** a, size_t value)
         if (!t->left && !t->right)
         {
             free (t->data->word);
+            free (t->data->lowWord);
             free (t->data);
             free (t);
 
             *a = NULL;
-            return;
         }
         // If one child
         else if (!t->left || !t->right)
@@ -289,6 +295,7 @@ treeRemove (tree ** a, size_t value)
                 *a = t->right;
             }
             free (t->data->word);
+            free (t->data->lowWord);
             free (t->data);
             free (t);
         }
@@ -296,8 +303,9 @@ treeRemove (tree ** a, size_t value)
         else
         {
             // Get the greatest value 
-            tree *newValue = treeGetMax (t->left);
+            tree *newValue = t->left;
             free (t->data->word);
+            free (t->data->lowWord);
             free (t->data);
 
             // Move greatest value to old stock position
@@ -306,32 +314,8 @@ treeRemove (tree ** a, size_t value)
 
             // Remove old stock and rebalance 
             treeRemove (&t->left, newValue->data->index);
-            _rebalance (a);
         }
 
-    }
-    // Keep Searching
-    else if (t->data->index < value)
-    {
-        treeRemove (&t->right, value);
-    }
-    else
-    {
-        treeRemove (&t->left, value);
-    }
-}
-
-// Get Highest value on the tree
-static struct _tree *
-treeGetMax (struct _tree *t)
-{
-    if (t->right)
-    {
-        return treeGetMax (t->right);
-    }
-    else
-    {
-        return t;
     }
 }
 

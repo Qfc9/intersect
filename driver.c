@@ -38,7 +38,6 @@ int main(int argc, char *argv[])
         processLine (&intersectTree, fileData[n]);
     }
 
-
     for (int i = 2; i < argc; ++i)
     {
         fp = fopen(argv[i], "r");
