@@ -114,10 +114,15 @@ treeInsert (tree ** t, char *word, size_t value)
 
     tree *subTree = *t;
 
+    int cmpVal = strcmp(word, subTree->data->word);
     // Inserting the node in the correct spot on the tree
-    if (strcmp(word, subTree->data->word) <= 0)
+    if (cmpVal < 0)
     {
         treeInsert (&subTree->left, word, value);
+    }
+    else if(cmpVal == 0)
+    {
+        return;
     }
     else
     {
