@@ -142,7 +142,7 @@ treePrint (const tree * a)
         return;
     }
     treePrint (a->left);
-    printf ("%zu ", (a->data->index));
+    //printf ("%zu ", (a->data->index));
     printf ("%s\n", a->data->word);
     treePrint (a->right);
 }
