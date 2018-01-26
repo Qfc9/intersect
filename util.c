@@ -10,7 +10,8 @@ size_t wordValue(char *word)
 
     for (size_t i = 0; i < strlen(word); i++)
     {
-        value += word[0];
+        //value += tolower(word[i]);
+        value += word[i];
     }
 
     return value;

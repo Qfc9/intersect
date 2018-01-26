@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "readIn.h"
 #include "tree.h"
@@ -26,6 +27,8 @@ int main(int argc, char *argv[])
 
     getData(fp, &fileData, &fileDataSz, &fileDataCap);
 
+    fclose(fp);
+    
     // Creating the market tree
     tree *market = createTree ();
 
@@ -37,11 +40,6 @@ int main(int argc, char *argv[])
 
     treePrint (market);
     printf ("\n");
-
-    // for (int i = 1; i < argc; i++)
-    // {
-    //     printf("%s\n", argv[i]);
-    // }
 
     // Freeing input mallocs
     for (unsigned int n = 0; n < fileDataSz; n++)

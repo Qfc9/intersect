@@ -48,15 +48,21 @@ void processLine (tree ** t, char *line)
 
     char buf[255];
 
+    strncpy(buf, "\0", 255);
+
     int tracker = 0;
     int tempTracker = 0;
 
     // Continueing from the last marked spot, getting the company name
     while (sscanf (line + tracker, "%254s%n ", buf, &tempTracker) > 0)
     {
-        treeInsert (t, buf, wordValue(buf));
+        //treeInsert (t, buf, wordValue(buf));
+        treeInsert (t, buf, 3);
         tracker += tempTracker;
     }
+
+    // REMOVE THIS
+    treeRemove(NULL, 0);
 } 
 
 
@@ -109,7 +115,7 @@ treeInsert (tree ** t, char *word, size_t value)
     tree *subTree = *t;
 
     // Inserting the node in the correct spot on the tree
-    if (value <= subTree->data->index)
+    if (strcmp(word, subTree->data->word) <= 0)
     {
         treeInsert (&subTree->left, word, value);
     }
@@ -131,8 +137,7 @@ treePrint (const tree * a)
         return;
     }
     treePrint (a->left);
-    printf ("%zu.", (a->data->index / 100));
-    printf ("%02zu ", (a->data->index % 100));
+    printf ("%zu ", (a->data->index));
     printf ("%s\n", a->data->word);
     treePrint (a->right);
 }
