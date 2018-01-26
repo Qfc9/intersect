@@ -11,6 +11,7 @@
 struct node
 {
     size_t index;
+    char *lowWord;
     char *word;
 };
 
@@ -27,6 +28,7 @@ struct _tree
 static void _rebalance (struct _tree **a);
 static void _rotateLeft (struct _tree **a);
 static void _rotateRight (struct _tree **a);
+// static struct _tree * _treeFind(struct _tree ** t, char *word);
 static void treeRemove (tree ** a, size_t value);
 static struct _tree *treeGetMax (struct _tree *t);
 static struct node *treeCreateStock (char *word,
@@ -39,6 +41,34 @@ createTree (void)
     return NULL;
 }
 
+// void treeIntersect(tree ** t, char *word)
+// {
+//     stringToLower(word);
+
+//     _treeFind(tree ** t, char *word);
+// }
+
+// static struct _tree * _treeFind(struct _tree ** t, char *word)
+// {
+//     int cmpVal = strcmp(word, t->data->word);
+
+//     // Inserting the node in the correct spot on the tree
+//     if (cmpVal < 0)
+//     {
+//         return treeFind (t->left, word);
+//     }
+//     else if(cmpVal == 0)
+//     {
+//         return *t;
+//     }
+//     else
+//     {
+//         return treeFind (t->right, word);
+//     }
+
+//     return NULL;
+// }
+
 void processLine (tree ** t, char *line)
 {
     if (!t)
@@ -47,6 +77,7 @@ void processLine (tree ** t, char *line)
     }
 
     char buf[255];
+    char *lowBuf = NULL;
 
     strncpy(buf, "\0", 255);
 
@@ -56,8 +87,10 @@ void processLine (tree ** t, char *line)
     // Continueing from the last marked spot, getting the company name
     while (sscanf (line + tracker, "%254s%n ", buf, &tempTracker) > 0)
     {
-        treeInsert (t, buf, stringToLower(buf), 3);
+        lowBuf = stringToLower(buf);
+        treeInsert (t, buf, lowBuf, 3);
         tracker += tempTracker;
+        free(lowBuf);
     }
 
     // REMOVE THIS
@@ -96,7 +129,6 @@ treeInsert (tree ** t, char *word, char *lowWord, size_t value)
         // Checking if calloc properly
         if (!*t)
         {
-            free(lowWord);
             return;
         }
 
@@ -106,12 +138,10 @@ treeInsert (tree ** t, char *word, char *lowWord, size_t value)
         if (!newStock)
         {
             free (*t);
-            free(lowWord);
             return;
         }
         (*t)->data = newStock;
 
-        free(lowWord);
         return;
     }
 
@@ -125,7 +155,6 @@ treeInsert (tree ** t, char *word, char *lowWord, size_t value)
     }
     else if(cmpVal == 0)
     {
-        free(lowWord);
         return;
     }
     else
@@ -163,6 +192,7 @@ treeDisassemble (tree * a)
     treeDisassemble (a->left);
     treeDisassemble (a->right);
     free (a->data->word);
+    free (a->data->lowWord);
     free (a->data);
     free (a);
 }
@@ -270,6 +300,16 @@ treeCreateStock (char *word, size_t value)
     // Checking
     if (!newStock->word)
     {
+        free (newStock);
+        return NULL;
+    }
+
+    // Setting word
+    newStock->lowWord = stringToLower(word);
+    // Checking
+    if (!newStock->lowWord)
+    {
+        free(newStock->word);
         free (newStock);
         return NULL;
     }
