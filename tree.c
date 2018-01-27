@@ -71,7 +71,7 @@ void treeIntersects(tree ** t, FILE *fp, size_t index)
             word[wordSz++] = buf;
             buf = fgetc (fp);
         }
-        word[wordSz++] = '\0';
+        word[wordSz] = '\0';
 
         if(wordSz > 0)
         {
@@ -92,6 +92,7 @@ static void removeTreeIntersects(struct _tree **t, size_t index)
 
     removeTreeIntersects (&(*t)->left, index);
     removeTreeIntersects (&(*t)->right, index);
+
     treeRemove(t, index);
 }
 
@@ -315,7 +316,7 @@ treeRemove (tree ** a, size_t value)
             // Remove old stock and rebalance 
             treeRemove (&t->left, newValue->data->index);
         }
-
+        _rebalance (a);
     }
 }
 
@@ -360,6 +361,11 @@ treeCreateStock (char *word, size_t value)
 static void
 _rebalance (struct _tree **a)
 {
+    if (!a || !*a)
+    {
+        return;
+    }
+
     struct _tree *t = *a;
     // If tree needs rebalancing, do so
     size_t left_height = treeHeight (t->left);
