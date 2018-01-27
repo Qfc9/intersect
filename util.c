@@ -6,10 +6,14 @@
 #include "util.h"
 
 // Sorting a word by their value
-int sortByAscii(char *str1, char *str2)
+int
+sortByAscii(
+    char *str1,
+    char *str2)
 {
     // Getting the length of the shortest word
-    size_t shortestSz = strlen(str1);
+    size_t          shortestSz = strlen(str1);
+
     if (shortestSz > strlen(str2))
     {
         shortestSz = strlen(str2);
@@ -44,11 +48,14 @@ int sortByAscii(char *str1, char *str2)
 }
 
 // Returns a lowercase version of a word 
-char * stringToLower(char *word)
+char *
+stringToLower(
+    char *word)
 {
     // Mallocing new empty word
-    char *lowWord = malloc(sizeof(*lowWord) * (strlen(word) + 1));
-    if(!lowWord)
+    char           *lowWord = malloc(sizeof(*lowWord) * (strlen(word) + 1));
+
+    if (!lowWord)
     {
         return NULL;
     }

@@ -4,7 +4,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-int sortByAscii(char *str1, char *str2);
-char * stringToLower(char *word);
+int
+sortByAscii(
+    char *str1,
+    char *str2);
+char *
+stringToLower(
+    char *word);
 
 #endif
