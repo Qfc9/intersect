@@ -13,21 +13,30 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    FILE *fp = fopen (argv[1], "r");
+    FILE *fp;
     size_t fileDataSz = 0;
     size_t fileDataCap = 4;
 
     char **fileData;
 
-    if (fp == NULL)
+    if (strcmp(argv[1], "-") != 0)
     {
-        fprintf (stderr, "Unable to open the file: %s\n", argv[1]);
-        return 1;
+        fp = fopen (argv[1], "r");
+        if (fp == NULL)
+        {
+            fprintf (stderr, "Unable to open the file: %s\n", argv[1]);
+            return 1;
+        }
+
+        getData(fp, &fileData, &fileDataSz, &fileDataCap);
+
+        fclose(fp);
     }
-
-    getData(fp, &fileData, &fileDataSz, &fileDataCap);
-
-    fclose(fp);
+    else
+    {
+        getData(stdin, &fileData, &fileDataSz, &fileDataCap);
+        printf ("\n");
+    }
 
     // Creating the intersectTree tree
     tree *intersectTree = createTree ();
