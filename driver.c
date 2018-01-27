@@ -35,7 +35,7 @@ main(
             return 1;
         }
 
-        // Reading the file and storing everything in the filedata variable
+        // Reading the file and storing everything in the file data variable
         getData(fp, &fileData, &fileDataSz, &fileDataCap);
 
         fclose(fp);

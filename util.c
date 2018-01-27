@@ -60,7 +60,7 @@ stringToLower(
         return NULL;
     }
 
-    // Copying word over but the lowercase version
+    // Copying word but as a lowercase version
     for (size_t i = 0; i < strlen(word); i++)
     {
         lowWord[i] = tolower(word[i]);

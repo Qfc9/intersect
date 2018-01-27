@@ -65,13 +65,13 @@ createTree(
     return NULL;
 }
 
-// Reads a string of chars and add's every word into the tree
+// Reads a string of chars and adds every word into the tree
 void
 treeAddWords(
     tree ** t,
     char *line)
 {
-    // Checking if t exsists
+    // Checking if t exists
     if (!t)
     {
         return;
@@ -88,7 +88,7 @@ treeAddWords(
     // Continuing from the last marked spot, getting the company name
     while (sscanf(line + tracker, "%254s%n ", buf, &tempTracker) > 0)
     {
-        // Geting a lowcase version of the word
+        // Getting a lowercase version of the word
         lowBuf = stringToLower(buf);
 
         // Adding the word into the tree
@@ -139,7 +139,7 @@ treeIntersects(
         // Adding null bit 
         word[wordSz] = '\0';
 
-        // If a word exsists
+        // If a word exists
         if (wordSz > 0)
         {
             // Making a lowercase version of it
@@ -166,7 +166,7 @@ treeIntersects(
     _removeTreeIntersects(t, index - 1);
 }
 
-// Geting the height of a tree
+// Getting the height of a tree
 size_t
 treeHeight(
     tree * t)
@@ -244,7 +244,7 @@ treeInsert(
         treeInsert(&subTree->right, word, lowWord, value);
     }
 
-    // Rebalancing the tree
+    // Re-balancing the tree
     _rebalance(t);
 }
 
@@ -283,7 +283,7 @@ treeDisassemble(
     free(a);
 }
 
-// Recursivly stepping through and removing items from the tree
+// Recursively stepping through and removing items from the tree
 static void
 _removeTreeIntersects(
     struct _tree **t,
@@ -433,12 +433,12 @@ _treeRemove(
             t->data = newStock;
             (*newValue)->data->index = 0;
 
-            // Remove old stock and rebalance 
+            // Remove old stock and rebalanced 
             _treeRemove(&(t)->left, value);
         }
     }
 
-    // Rebalancing
+    // Re-balancing
     _rebalance(a);
 }
 
@@ -482,7 +482,7 @@ _treeCreateData(
     return newStock;
 }
 
-// Rebalancing the tree, SAME FROM IN CLASS
+// Re-balancing the tree, SAME FROM IN CLASS
 static void
 _rebalance(
     struct _tree **a)
@@ -495,7 +495,7 @@ _rebalance(
 
     struct _tree   *t = *a;
 
-    // If tree needs rebalancing, do so
+    // If tree needs re-balancing, do so
     size_t          left_height = treeHeight(t->left);
     size_t          right_height = treeHeight(t->right);
 
@@ -527,7 +527,7 @@ _rebalance(
     }
 }
 
-// Helps Rebalance, rotating tree right
+// Helps Re-balance, rotating tree right
 static void
 _rotateRight(
     struct _tree **t)
@@ -548,7 +548,7 @@ _rotateRight(
     *t = child;
 }
 
-// Helps Rebalance, rotating tree right
+// Helps Re-balance, rotating tree right
 static void
 _rotateLeft(
     struct _tree **t)
