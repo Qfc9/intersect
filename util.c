@@ -5,6 +5,38 @@
 
 #include "util.h"
 
+int sortByAscii(char *str1, char *str2)
+{
+    size_t shortestSz = strlen(str1);
+    if (shortestSz > strlen(str2))
+    {
+        shortestSz = strlen(str2);
+    }
+
+    for (size_t i = 0; i < shortestSz; i++)
+    {
+        if (str1[i] > str2[i])
+        {
+            return 1;
+        }
+        else if (str1[i] < str2[i])
+        {
+            return -1;
+        }
+    }
+
+    if (strlen(str1) < strlen(str2))
+    {
+        return -1;
+    }
+    else if (strlen(str1) > strlen(str2))
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 size_t wordValue(char *word)
 {
     size_t value = 0;
@@ -36,6 +68,7 @@ char * stringToLower(char *word)
     return lowWord;
 }
 
+// FIX FOR UTF-8
 void stringToLowerVoid(char *word)
 {
     for (size_t i = 0; i < strlen(word); i++)

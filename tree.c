@@ -158,7 +158,7 @@ treeInsert (tree ** t, char *word, char *lowWord, size_t value)
 
     tree *subTree = *t;
 
-    int cmpVal = strcmp(lowWord, subTree->data->lowWord);
+    int cmpVal = sortByAscii(lowWord, subTree->data->lowWord);
     // Inserting the node in the correct spot on the tree
     if (cmpVal < 0)
     {
@@ -246,7 +246,7 @@ static struct _tree * _treeFind(struct _tree *t, char *word)
         return NULL;
     }
 
-    int cmpVal = strcmp(word, t->data->lowWord);
+    int cmpVal = sortByAscii(word, t->data->lowWord);
 
     // Inserting the node in the correct spot on the tree
     if (cmpVal < 0)
