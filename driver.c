@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "readIn.h"
 #include "tree.h"
@@ -26,22 +27,32 @@ int main(int argc, char *argv[])
 
     getData(fp, &fileData, &fileDataSz, &fileDataCap);
 
-    // Creating the market tree
-    tree *market = createTree ();
+    fclose(fp);
+
+    // Creating the intersectTree tree
+    tree *intersectTree = createTree ();
 
     // Adding all the values from the file into the tree
     for (unsigned int n = 0; n < fileDataSz; n++)
     {
-        processCompany (&market, fileData[n]);
+        processLine (&intersectTree, fileData[n]);
     }
 
-    treePrint (market);
-    printf ("\n");
+    for (int i = 2; i < argc; ++i)
+    {
+        fp = fopen(argv[i], "r");
+        if(!fp)
+        {
+            continue;
+        }
 
-    // for (int i = 1; i < argc; i++)
-    // {
-    //     printf("%s\n", argv[i]);
-    // }
+        treeIntersects(&intersectTree, fp, i);
+
+        fclose(fp);
+    }
+
+    treePrint (intersectTree);
+    printf ("\n");
 
     // Freeing input mallocs
     for (unsigned int n = 0; n < fileDataSz; n++)
@@ -51,7 +62,7 @@ int main(int argc, char *argv[])
     free (fileData);
 
     // Freeing the tree
-    treeDisassemble (market);
+    treeDisassemble (intersectTree);
 
     return 0;
 }

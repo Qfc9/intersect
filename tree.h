@@ -4,12 +4,12 @@
 #include <stdlib.h>
 
 typedef struct _tree tree;
+void processLine (tree ** t, char *line);
 tree *createTree (void);
-void processCompany (tree ** t, char *line);
 size_t treeHeight (tree * a);
-void treeUpdate (tree ** t, char *ticker, char *name, double value);
-void treeInsert (tree ** a, char *symbol, char *name, size_t price);
+void treeInsert (tree ** t, char *word, char *lowWord, size_t value);
 void treePrint (const tree * a);
 void treeDisassemble (tree * a);
+void treeIntersects(tree ** t, FILE *fp, size_t index);
 
 #endif

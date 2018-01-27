@@ -3,23 +3,25 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
+#include "util.h"
 #include "tree.h"
 
-// Company Storage
-struct company
+// node Storage
+struct node
 {
-  char symbol[6];
-  size_t cents;
-  char *name;
+    size_t index;
+    char *lowWord;
+    char *word;
 };
 
 // Hidden tree struct
 struct _tree
 {
-  struct company *data;
-  struct _tree *left;
-  struct _tree *right;
+    struct node *data;
+    struct _tree *left;
+    struct _tree *right;
 };
 
 
@@ -27,402 +29,371 @@ struct _tree
 static void _rebalance (struct _tree **a);
 static void _rotateLeft (struct _tree **a);
 static void _rotateRight (struct _tree **a);
-static void treeRemove (tree ** a, char *ticker, size_t value);
-static struct _tree *treeGetMax (struct _tree *t);
-static struct _tree *treeSearchForName (struct _tree *t, char *name);
-static struct company *treeCreateStock (char *symbol, char *name,
-                    size_t price);
+static void treeMarkIntersects(tree ** t, char *word);
+static void removeTreeIntersects(struct _tree **t, size_t index);
+static struct _tree * _treeFind(struct _tree *t, char *word);
+static void treeRemove (tree ** a, size_t value);
+static struct node *treeCreateStock (char *word,
+              size_t value);
 
 // Creating a new tree
 tree *
 createTree (void)
 {
-  return NULL;
+    return NULL;
 }
 
-// Extracts company info from a string
-void
-processCompany (tree ** t, char *line)
+void treeIntersects(tree ** t, FILE *fp, size_t index)
 {
-  if (!t)
+    if (!t || !fp)
     {
-      return;
+        return;
     }
 
-  double value = 0.0;
-  char ticker[6];
-  char name[64];
-  char buf[64];
+    int wordSz = 0;
+    char *word = NULL;
 
-  int tracker = 0;
-  int tempTracker = 0;
-
-  strcpy (name, "\0");
-  strcpy (buf, "\0");
-  strcpy (ticker, "\0");
-
-
-  // Getting ticker and money, tracking where it left off
-  if (sscanf (line, "%5s %lf%n", ticker, &value, &tracker) != 2)
+    // Getting all the data in the file given
+    char buf = 0;
+    while (buf != EOF)
     {
-      return;
-    }
+        buf = fgetc (fp);
+        wordSz = 0;
+        word = malloc(sizeof(*word) * 255);
+        if(!word)
+        {
+            break;
+        }
 
-  // Verifing the ticker
-  // if (invalidTicker (ticker))
-  //   {
-  //     return;
-  //   }
+        // Dynamicly allocating each line in the file as a string
+        while (buf != EOF && buf != 10 && buf != 35 && isgraph(buf))
+        {
+            word[wordSz++] = buf;
+            buf = fgetc (fp);
+        }
+        word[wordSz] = '\0';
 
-  // Continueing from the last marked spot, getting the company name
-  while (sscanf (line + tracker, "%63s%n", buf, &tempTracker) > 0)
-    {
-      // Making sure the name isn't to long
-      if ((strlen (buf) + strlen (name)) <= 63)
-    {
-      strcat (name, buf);
-      strcat (name, " ");
-      tracker += tempTracker;
+        if(wordSz > 0)
+        {
+            treeMarkIntersects(t, word);
+        }
 
+        free(word);
     }
-      else
-    {
-      strncat (name, buf, 63 - strlen (name));
-      name[63] = '\0';
-      break;
-    }
-    }
-
-  // Updating the tree with this new info
-  treeUpdate (t, ticker, name, value);
+    removeTreeIntersects(t, index - 1);
 }
+
+static void removeTreeIntersects(struct _tree **t, size_t index)
+{
+    if (!t || !*t)
+    {
+        return;
+    }
+
+    removeTreeIntersects (&(*t)->left, index);
+    removeTreeIntersects (&(*t)->right, index);
+
+    treeRemove(t, index);
+}
+
+static void treeMarkIntersects(tree ** t, char *word)
+{
+    stringToLowerVoid(word);
+    tree *foundTree = _treeFind(*t, word);
+    if(foundTree)
+    {
+        foundTree->data->index += 1;
+    }
+}
+
+static struct _tree * _treeFind(struct _tree *t, char *word)
+{
+    if (!t)
+    {
+        return NULL;
+    }
+
+    int cmpVal = strcmp(word, t->data->lowWord);
+
+    // Inserting the node in the correct spot on the tree
+    if (cmpVal < 0)
+    {
+        return _treeFind (t->left, word);
+    }
+    else if(cmpVal == 0)
+    {
+        return t;
+    }
+    else
+    {
+        return _treeFind (t->right, word);
+    }
+
+    return NULL;
+}
+
+void processLine (tree ** t, char *line)
+{
+    if (!t)
+    {
+        return;
+    }
+
+    char buf[255];
+    char *lowBuf = NULL;
+
+    strncpy(buf, "\0", 255);
+
+    int tracker = 0;
+    int tempTracker = 0;
+
+    // Continueing from the last marked spot, getting the company name
+    while (sscanf (line + tracker, "%254s%n ", buf, &tempTracker) > 0)
+    {
+        lowBuf = stringToLower(buf);
+        treeInsert (t, buf, lowBuf, 1);
+        tracker += tempTracker;
+        free(lowBuf);
+    }
+} 
+
 
 // Geting the height of a tree
 size_t
 treeHeight (tree * a)
 {
-  if (!a)
+    if (!a)
     {
-      return 0;
+        return 0;
     }
-  size_t left = treeHeight (a->left);
-  size_t right = treeHeight (a->right);
+    size_t left = treeHeight (a->left);
+    size_t right = treeHeight (a->right);
 
-  return 1 + (left > right ? left : right);
+    return 1 + (left > right ? left : right);
 }
 
-// Inserting a new company into a tree
+// Inserting a new node into a tree
 void
-treeInsert (tree ** a, char *symbol, char *name, size_t price)
+treeInsert (tree ** t, char *word, char *lowWord, size_t value)
 {
-  if (!a)
+    if (!t || !lowWord)
     {
-      return;
+        return;
     }
 
-  // If the tree is null make a root
-  if (!*a)
+    // If the tree is null make a root
+    if (!*t)
     {
-      *a = calloc (1, sizeof (**a));
+        *t = calloc (1, sizeof (**t));
 
-      // Checking if calloc properly
-      if (!*a)
-    {
-      return;
+        // Checking if calloc properly
+        if (!*t)
+        {
+            return;
+        }
+
+        // Making new node 
+        struct node *newStock = treeCreateStock (word, value);
+        // Checking if malloced properly
+        if (!newStock)
+        {
+            free (*t);
+            return;
+        }
+        (*t)->data = newStock;
+
+        return;
     }
 
-      // Making new company 
-      struct company *newStock = treeCreateStock (symbol, name, price);
-      // Checking if malloced properly
-      if (!newStock)
+    tree *subTree = *t;
+
+    int cmpVal = strcmp(lowWord, subTree->data->lowWord);
+    // Inserting the node in the correct spot on the tree
+    if (cmpVal < 0)
     {
-      free (*a);
-      return;
+        treeInsert (&subTree->left, word, lowWord, value);
     }
-      (*a)->data = newStock;
-      return;
+    else if(cmpVal == 0)
+    {
+        return;
+    }
+    else
+    {
+        treeInsert (&subTree->right, word, lowWord, value);
     }
 
-  tree *t = *a;
-
-  // Inserting the company in the correct spot on the tree
-  if (price <= t->data->cents)
-    {
-      treeInsert (&t->left, symbol, name, price);
-    }
-  else
-    {
-      treeInsert (&t->right, symbol, name, price);
-    }
-
-  // Rebalancing the tree
-  _rebalance (a);
+    // Rebalancing the tree
+    _rebalance (t);
 }
 
 // Printing all the values on the tree
 void
 treePrint (const tree * a)
 {
-  if (!a)
+    if (!a)
     {
-      return;
+        return;
     }
-  treePrint (a->left);
-  printf ("%s ", a->data->symbol);
-  printf ("%zu.", (a->data->cents / 100));
-  printf ("%02zu ", (a->data->cents % 100));
-  printf ("%s\n", a->data->name);
-  treePrint (a->right);
+    treePrint (a->left);
+    printf ("%s\n", a->data->word);
+    treePrint (a->right);
 }
 
 // Freeing all members on the tree
 void
 treeDisassemble (tree * a)
 {
-  if (!a)
+    if (!a)
     {
-      return;
+        return;
     }
 
-  treeDisassemble (a->left);
-  treeDisassemble (a->right);
-  free (a->data->name);
-  free (a->data);
-  free (a);
-}
-
-// Updating the tree 
-void
-treeUpdate (tree ** t, char *ticker, char *name, double value)
-{
-  if (!t)
-    {
-      return;
-    }
-
-  // Searching the tree for a ticker
-  tree *result = treeSearchForName (*t, ticker);
-
-  size_t covertedVal = 0;
-  size_t newValue = 0;
-
-  // If that ticker doesn't exsist add it
-  if (!result)
-    {
-      treeInsert (t, ticker, name, covertedVal);
-      return;
-    }
-
-  // Subing the new and old stock
-  if (value < 0 && covertedVal <= result->data->cents)
-    {
-      newValue = result->data->cents - covertedVal;
-    }
-  // Adding the new and old stock
-  else if ((covertedVal + result->data->cents) <= 100000000)
-    {
-      newValue = result->data->cents + covertedVal;
-    }
-  // Invalid stock information
-  else
-    {
-      return;
-    }
-
-  // Coping stock info, originals wont last the remove
-  char newTick[6];
-  char newName[64];
-  strncpy (newTick, result->data->symbol, 5);
-  strncpy (newName, result->data->name, 63);
-  newTick[5] = '\0';
-  newName[63] = '\0';
-
-  // Removing old stock and added the new one
-  treeRemove (t, ticker, result->data->cents);
-  treeInsert (t, newTick, newName, newValue);
+    treeDisassemble (a->left);
+    treeDisassemble (a->right);
+    free (a->data->word);
+    free (a->data->lowWord);
+    free (a->data);
+    free (a);
 }
 
 // Removed Item from tree
 static void
-treeRemove (tree ** a, char *ticker, size_t value)
+treeRemove (tree ** a, size_t value)
 {
-  if (!a)
+    if (!a)
     {
-      return;
+        return;
     }
-  if (!*a)
+    if (!*a)
     {
-      return;
+        return;
     }
 
-  struct _tree *t = *a;
+    struct _tree *t = *a;
 
-  // If the symbol and money values are the same, Its a match
-  if ((t->data->cents == value) && (strcmp (t->data->symbol, ticker) == 0))
+    // If the symbol and money values are the same, Its a match
+    if ((t->data->index == value))
     {
-      // If no children
-      if (!t->left && !t->right)
-    {
-      free (t->data->name);
-      free (t->data);
-      free (t);
-
-      *a = NULL;
-      return;
-    }
-      // If one child
-      else if (!t->left || !t->right)
-    {
-      if (t->left)
+        // If no children
+        if (!t->left && !t->right)
         {
-          *a = t->left;
+            free (t->data->word);
+            free (t->data->lowWord);
+            free (t->data);
+            free (t);
+
+            *a = NULL;
         }
-      else
+        // If one child
+        else if (!t->left || !t->right)
         {
-          *a = t->right;
+            if (t->left)
+            {
+                *a = t->left;
+            }
+            else
+            {
+                *a = t->right;
+            }
+            free (t->data->word);
+            free (t->data->lowWord);
+            free (t->data);
+            free (t);
         }
-      free (t->data->name);
-      free (t->data);
-      free (t);
-    }
-      // If two children
-      else
-    {
-      // Get the greatest value 
-      tree *newValue = treeGetMax (t->left);
-      free (t->data->name);
-      free (t->data);
+        // If two children
+        else
+        {
+            // Get the greatest value 
+            tree *newValue = t->left;
+            free (t->data->word);
+            free (t->data->lowWord);
+            free (t->data);
 
-      // Move greatest value to old stock position
-      struct company *newStock =
-        treeCreateStock (newValue->data->symbol, newValue->data->name,
-                 newValue->data->cents);
-      t->data = newStock;
+            // Move greatest value to old stock position
+            struct node *newStock = treeCreateStock (newValue->data->word, newValue->data->index);
+            t->data = newStock;
 
-      // Remove old stock and rebalance 
-      treeRemove (&t->left, newValue->data->symbol,
-              newValue->data->cents);
-      _rebalance (a);
-    }
-
-    }
-  // Keep Searching
-  else if (t->data->cents < value)
-    {
-      treeRemove (&t->right, ticker, value);
-    }
-  else
-    {
-      treeRemove (&t->left, ticker, value);
+            // Remove old stock and rebalance 
+            treeRemove (&t->left, newValue->data->index);
+        }
+        _rebalance (a);
     }
 }
 
-// Get Highest value on the tree
-static struct _tree *
-treeGetMax (struct _tree *t)
+// Returns a node * with all the information set
+static struct node *
+treeCreateStock (char *word, size_t value)
 {
-  if (t->right)
+    // Mallocing 
+    struct node *newStock = malloc (sizeof (*newStock));
+    // Checking malloc
+    if (!newStock)
     {
-      return treeGetMax (t->right);
-    }
-  else
-    {
-      return t;
-    }
-}
-
-// Search the tree for a Ticker name, stepping through inorder
-static struct _tree *
-treeSearchForName (struct _tree *t, char *name)
-{
-  if (!t)
-    {
-      return NULL;
+        return NULL;
     }
 
-  struct _tree *result = NULL;
-
-  // If tickers are the same
-  if (strcmp (name, t->data->symbol) == 0)
+    // Setting word
+    newStock->word = strdup (word);
+    // Checking
+    if (!newStock->word)
     {
-      result = t;
-    }
-  // If they aren't the same keep searching
-  else
-    {
-      result = treeSearchForName (t->left, name);
-      if (!result)
-    {
-      result = treeSearchForName (t->right, name);
-    }
+        free (newStock);
+        return NULL;
     }
 
-  return result;
-}
-
-// Returns a company * with all the information set
-static struct company *
-treeCreateStock (char *symbol, char *name, size_t price)
-{
-  // Mallocing 
-  struct company *newStock = malloc (sizeof (*newStock));
-  // Checking malloc
-  if (!newStock)
+    // Setting word
+    newStock->lowWord = stringToLower(word);
+    // Checking
+    if (!newStock->lowWord)
     {
-      return NULL;
+        free (newStock->word);
+        free (newStock);
+        return NULL;
     }
 
-  // Setting name
-  newStock->name = strdup (name);
-  // Checking
-  if (!newStock->name)
-    {
-      free (newStock);
-      return NULL;
-    }
+    // Setting value
+    newStock->index = value;
 
-  // Setting symbol
-  strncpy (newStock->symbol, symbol, sizeof (newStock->symbol) - 1);
-  newStock->symbol[sizeof (newStock->symbol) - 1] = '\0';
-
-  // Setting price
-  newStock->cents = price;
-
-  return newStock;
+    return newStock;
 }
 
 // Rebalancing the tree, SAME FROM IN CLASS
 static void
 _rebalance (struct _tree **a)
 {
-  struct _tree *t = *a;
-  // If tree needs rebalancing, do so
-  size_t left_height = treeHeight (t->left);
-  size_t right_height = treeHeight (t->right);
+    if (!a || !*a)
+    {
+        return;
+    }
 
-  if (left_height > right_height && left_height - right_height > 1)
+    struct _tree *t = *a;
+    // If tree needs rebalancing, do so
+    size_t left_height = treeHeight (t->left);
+    size_t right_height = treeHeight (t->right);
+
+    if (left_height > right_height && left_height - right_height > 1)
     {
-      size_t left_left_height = treeHeight (t->left->left);
-      size_t left_right_height = treeHeight (t->left->right);
-      if (left_left_height < left_right_height)
-    {
-      // First rotate child to the left
-      _rotateLeft (&t->left);
+        size_t left_left_height = treeHeight (t->left->left);
+        size_t left_right_height = treeHeight (t->left->right);
+        if (left_left_height < left_right_height)
+        {
+            // First rotate child to the left
+            _rotateLeft (&t->left);
+        }
+        // Rotate right
+        _rotateRight (a);
     }
-      // Rotate right
-      _rotateRight (a);
-    }
-  else if (left_height < right_height && right_height - left_height > 1)
+    else if (left_height < right_height && right_height - left_height > 1)
     {
-      size_t right_right_height = treeHeight (t->right->right);
-      size_t right_left_height = treeHeight (t->right->left);
-      if (right_right_height < right_left_height)
-    {
-      // First rotate child to the right
-      _rotateRight (&t->right);
-    }
-      // Rotate left
-      _rotateLeft (a);
+        size_t right_right_height = treeHeight (t->right->right);
+        size_t right_left_height = treeHeight (t->right->left);
+        if (right_right_height < right_left_height)
+        {
+            // First rotate child to the right
+            _rotateRight (&t->right);
+        }
+        // Rotate left
+        _rotateLeft (a);
     }
 }
 
@@ -430,34 +401,34 @@ _rebalance (struct _tree **a)
 static void
 _rotateRight (struct _tree **t)
 {
-  if (!t)
+    if (!t)
     {
-      return;
+        return;
     }
-  else if (!*t)
+    else if (!*t)
     {
-      return;
+        return;
     }
-  struct _tree *child = (*t)->left;
-  (*t)->left = child->right;
-  child->right = *t;
-  *t = child;
+    struct _tree *child = (*t)->left;
+    (*t)->left = child->right;
+    child->right = *t;
+    *t = child;
 }
 
 // Helps Rebalance, rotating tree right
 static void
 _rotateLeft (struct _tree **t)
 {
-  if (!t)
+    if (!t)
     {
-      return;
+        return;
     }
-  else if (!*t)
+    else if (!*t)
     {
-      return;
+        return;
     }
-  struct _tree *child = (*t)->right;
-  (*t)->right = child->left;
-  child->left = *t;
-  *t = child;
+    struct _tree *child = (*t)->right;
+    (*t)->right = child->left;
+    child->left = *t;
+    *t = child;
 }
