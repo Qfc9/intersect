@@ -50,15 +50,17 @@ int main(int argc, char *argv[])
     free (fileData);
 
 
+    size_t skippedFiles = 0;
     for (int i = 2; i < argc; ++i)
     {
         fp = fopen(argv[i], "r");
         if(!fp)
         {
-            fprintf (stderr, "Unable to open %s, skipping file\n", argv[i]);
+            fprintf (stderr, "Unable to open the file: %s\n", argv[i]);
+            skippedFiles += 1;
             continue;
         }
-        treeIntersects(&intersectTree, fp, i);
+        treeIntersects(&intersectTree, fp, (i - skippedFiles));
 
         fclose(fp);
     }
