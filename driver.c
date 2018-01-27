@@ -36,16 +36,19 @@ int main(int argc, char *argv[])
     for (unsigned int n = 0; n < fileDataSz; n++)
     {
         processLine (&intersectTree, fileData[n]);
+        free (fileData[n]);
     }
+    free (fileData);
+
 
     for (int i = 2; i < argc; ++i)
     {
         fp = fopen(argv[i], "r");
         if(!fp)
         {
+            fprintf (stderr, "Unable to open %s, skipping file\n", argv[i]);
             continue;
         }
-
         treeIntersects(&intersectTree, fp, i);
 
         fclose(fp);
@@ -53,13 +56,6 @@ int main(int argc, char *argv[])
 
     treePrint (intersectTree);
     printf ("\n");
-
-    // Freeing input mallocs
-    for (unsigned int n = 0; n < fileDataSz; n++)
-    {
-        free (fileData[n]);
-    }
-    free (fileData);
 
     // Freeing the tree
     treeDisassemble (intersectTree);

@@ -29,11 +29,11 @@ struct _tree
 static void _rebalance (struct _tree **a);
 static void _rotateLeft (struct _tree **a);
 static void _rotateRight (struct _tree **a);
-static void treeMarkIntersects(tree ** t, char *word);
-static void removeTreeIntersects(struct _tree **t, size_t index);
+static void _treeMarkIntersects(tree ** t, char *word);
+static void _removeTreeIntersects(struct _tree **t, size_t index);
 static struct _tree * _treeFind(struct _tree *t, char *word);
-static void treeRemove (tree ** a, size_t value);
-static struct node *treeCreateStock (char *word,
+static void _treeRemove (tree ** a, size_t value);
+static struct node *_treeCreateData (char *word,
               size_t value);
 
 // Creating a new tree
@@ -43,9 +43,34 @@ createTree (void)
     return NULL;
 }
 
+void processLine (tree ** t, char *line)
+{
+    if (!t)
+    {
+        return;
+    }
+
+    char buf[255];
+    char *lowBuf = NULL;
+
+    strncpy(buf, "\0", 255);
+
+    int tracker = 0;
+    int tempTracker = 0;
+
+    // Continueing from the last marked spot, getting the company name
+    while (sscanf (line + tracker, "%254s%n ", buf, &tempTracker) > 0)
+    {
+        lowBuf = stringToLower(buf);
+        treeInsert (t, buf, lowBuf, 1);
+        tracker += tempTracker;
+        free(lowBuf);
+    }
+}
+
 void treeIntersects(tree ** t, FILE *fp, size_t index)
 {
-    if (!t || !fp)
+    if (!t || !*t || !fp)
     {
         return;
     }
@@ -75,88 +100,14 @@ void treeIntersects(tree ** t, FILE *fp, size_t index)
 
         if(wordSz > 0)
         {
-            treeMarkIntersects(t, word);
+            _treeMarkIntersects(t, word);
         }
 
         free(word);
     }
-    removeTreeIntersects(t, index - 1);
+    _removeTreeIntersects(t, index - 1);
+    _removeTreeIntersects(t, index - 1);
 }
-
-static void removeTreeIntersects(struct _tree **t, size_t index)
-{
-    if (!t || !*t)
-    {
-        return;
-    }
-
-    removeTreeIntersects (&(*t)->left, index);
-    removeTreeIntersects (&(*t)->right, index);
-
-    treeRemove(t, index);
-}
-
-static void treeMarkIntersects(tree ** t, char *word)
-{
-    stringToLowerVoid(word);
-    tree *foundTree = _treeFind(*t, word);
-    if(foundTree)
-    {
-        foundTree->data->index += 1;
-    }
-}
-
-static struct _tree * _treeFind(struct _tree *t, char *word)
-{
-    if (!t)
-    {
-        return NULL;
-    }
-
-    int cmpVal = strcmp(word, t->data->lowWord);
-
-    // Inserting the node in the correct spot on the tree
-    if (cmpVal < 0)
-    {
-        return _treeFind (t->left, word);
-    }
-    else if(cmpVal == 0)
-    {
-        return t;
-    }
-    else
-    {
-        return _treeFind (t->right, word);
-    }
-
-    return NULL;
-}
-
-void processLine (tree ** t, char *line)
-{
-    if (!t)
-    {
-        return;
-    }
-
-    char buf[255];
-    char *lowBuf = NULL;
-
-    strncpy(buf, "\0", 255);
-
-    int tracker = 0;
-    int tempTracker = 0;
-
-    // Continueing from the last marked spot, getting the company name
-    while (sscanf (line + tracker, "%254s%n ", buf, &tempTracker) > 0)
-    {
-        lowBuf = stringToLower(buf);
-        treeInsert (t, buf, lowBuf, 1);
-        tracker += tempTracker;
-        free(lowBuf);
-    }
-} 
-
 
 // Geting the height of a tree
 size_t
@@ -193,7 +144,7 @@ treeInsert (tree ** t, char *word, char *lowWord, size_t value)
         }
 
         // Making new node 
-        struct node *newStock = treeCreateStock (word, value);
+        struct node *newStock = _treeCreateData (word, value);
         // Checking if malloced properly
         if (!newStock)
         {
@@ -256,15 +207,78 @@ treeDisassemble (tree * a)
     free (a);
 }
 
-// Removed Item from tree
-static void
-treeRemove (tree ** a, size_t value)
+static void _removeTreeIntersects(struct _tree **t, size_t index)
 {
-    if (!a)
+    if (!t)
     {
         return;
     }
-    if (!*a)
+    else if (!*t)
+    {
+        return;
+    }
+
+    _removeTreeIntersects (&(*t)->left, index);
+    _removeTreeIntersects (&(*t)->right, index);
+
+    _treeRemove(t, index);
+}
+
+static void _treeMarkIntersects(tree ** t, char *word)
+{
+    if (!t || !*t)
+    {
+        return;
+    }
+
+    stringToLowerVoid(word);
+    tree *foundTree = _treeFind(*t, word);
+    if(foundTree)
+    {
+        foundTree->data->index += 1;
+    }
+}
+
+static struct _tree * _treeFind(struct _tree *t, char *word)
+{
+    if (!t)
+    {
+        return NULL;
+    }
+
+    int cmpVal = strcmp(word, t->data->lowWord);
+
+    // Inserting the node in the correct spot on the tree
+    if (cmpVal < 0)
+    {
+        return _treeFind (t->left, word);
+    }
+    else if(cmpVal == 0)
+    {
+        return t;
+    }
+    else
+    {
+        return _treeFind (t->right, word);
+    }
+
+    return NULL;
+}
+
+tree **get_max(tree **node)
+{
+    if((*node)->right) {
+        return get_max(&(*node)->right);
+    } else {
+        return node;
+    }
+}
+
+// Removed Item from tree
+static void
+_treeRemove (tree ** a, size_t value)
+{
+    if (!a || !*a)
     {
         return;
     }
@@ -272,7 +286,7 @@ treeRemove (tree ** a, size_t value)
     struct _tree *t = *a;
 
     // If the symbol and money values are the same, Its a match
-    if ((t->data->index == value))
+    if ((t->data->index <= value))
     {
         // If no children
         if (!t->left && !t->right)
@@ -304,25 +318,27 @@ treeRemove (tree ** a, size_t value)
         else
         {
             // Get the greatest value 
-            tree *newValue = t->left;
+            tree **newValue = get_max(&(t)->left);
             free (t->data->word);
             free (t->data->lowWord);
             free (t->data);
 
             // Move greatest value to old stock position
-            struct node *newStock = treeCreateStock (newValue->data->word, newValue->data->index);
+            struct node *newStock = _treeCreateData ((*newValue)->data->word, (*newValue)->data->index);
             t->data = newStock;
+            (*newValue)->data->index = 0;
 
             // Remove old stock and rebalance 
-            treeRemove (&t->left, newValue->data->index);
+            _treeRemove (&(t)->left, value);
         }
-        _rebalance (a);
     }
+
+    _rebalance (a);
 }
 
 // Returns a node * with all the information set
 static struct node *
-treeCreateStock (char *word, size_t value)
+_treeCreateData (char *word, size_t value)
 {
     // Mallocing 
     struct node *newStock = malloc (sizeof (*newStock));
