@@ -38,7 +38,8 @@ _rotateRight(
 static void 
 _treeMarkIntersects(
     tree ** t,
-    char *word);
+    char *word,
+    size_t index);
 static void
 _removeTreeIntersects(
     struct _tree **t,
@@ -151,7 +152,7 @@ treeIntersects(
             }
 
             // Looks for the word in the tree and marks it as seen
-            _treeMarkIntersects(t, lowWord);
+            _treeMarkIntersects(t, lowWord, index);
             free(lowWord);
         }
 
@@ -308,7 +309,8 @@ _removeTreeIntersects(
 static void
 _treeMarkIntersects(
     tree ** t,
-    char *word)
+    char *word,
+    size_t index)
 {
     // Checking if values are set
     if (!t || !*t)
@@ -322,7 +324,7 @@ _treeMarkIntersects(
     // Marking if found
     if (foundTree)
     {
-        foundTree->data->index += 1;
+        foundTree->data->index = index;
     }
 }
 
