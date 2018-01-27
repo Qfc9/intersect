@@ -5,60 +5,87 @@
 #include "readIn.h"
 #include "tree.h"
 
-int main(int argc, char *argv[])
+// This is the program's main function
+int
+main(
+    int argc,
+    char *argv[])
 {
+    // Checking for at least 2 args
     if (argc <= 2)
     {
         fprintf(stderr, "Invalid amount of args\n");
         return 1;
     }
 
-    FILE *fp = fopen (argv[1], "r");
-    size_t fileDataSz = 0;
-    size_t fileDataCap = 4;
+    // Initializing variables for reading in the first file
+    FILE           *fp;
+    size_t          fileDataSz = 0;
+    size_t          fileDataCap = 4;
+    char          **fileData;
 
-    char **fileData;
-
-    if (fp == NULL)
+    // Checking if the first arg not a -
+    if (strcmp(argv[1], "-") != 0)
     {
-        fprintf (stderr, "Unable to open the file: %s\n", argv[1]);
-        return 1;
+        // Open the first file and check if it's legit
+        fp = fopen(argv[1], "r");
+        if (fp == NULL)
+        {
+            fprintf(stderr, "Unable to open the file: %s\n", argv[1]);
+            return 1;
+        }
+
+        // Reading the file and storing everything in the file data variable
+        getData(fp, &fileData, &fileDataSz, &fileDataCap);
+
+        fclose(fp);
     }
-
-    getData(fp, &fileData, &fileDataSz, &fileDataCap);
-
-    fclose(fp);
+    // If the first arg is a - read from STDIN
+    else
+    {
+        getData(stdin, &fileData, &fileDataSz, &fileDataCap);
+        printf("\n");
+    }
 
     // Creating the intersectTree tree
-    tree *intersectTree = createTree ();
+    tree           *intersectTree = createTree();
 
-    // Adding all the values from the file into the tree
+    // Adding all the values from the first file into the tree
     for (unsigned int n = 0; n < fileDataSz; n++)
     {
-        processLine (&intersectTree, fileData[n]);
-        free (fileData[n]);
+        treeAddWords(&intersectTree, fileData[n]);
+        free(fileData[n]);
     }
-    free (fileData);
+    free(fileData);
 
+
+    // Reading every file after the first one
+    size_t          skippedFiles = 0;
 
     for (int i = 2; i < argc; ++i)
     {
+        // Making sure the file opens
         fp = fopen(argv[i], "r");
-        if(!fp)
+        if (!fp)
         {
-            fprintf (stderr, "Unable to open %s, skipping file\n", argv[i]);
+            // Go to the next file if it doesn't open
+            fprintf(stderr, "Unable to open the file: %s\n", argv[i]);
+            skippedFiles += 1;
             continue;
         }
-        treeIntersects(&intersectTree, fp, i);
+
+        // Do an intersection against the current file
+        treeIntersects(&intersectTree, fp, (i - skippedFiles));
 
         fclose(fp);
     }
 
-    treePrint (intersectTree);
-    printf ("\n");
+    // Printing the tree
+    treePrint(intersectTree);
+    printf("\n");
 
-    // Freeing the tree
-    treeDisassemble (intersectTree);
+    // Free the tree
+    treeDisassemble(intersectTree);
 
     return 0;
 }

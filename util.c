@@ -5,54 +5,69 @@
 
 #include "util.h"
 
-size_t wordValue(char *word)
+// Sorting a word by their value
+int
+sortByAscii(
+    char *str1,
+    char *str2)
 {
-    size_t value = 0;
+    // Getting the length of the shortest word
+    size_t          shortestSz = strlen(str1);
 
-    for (size_t i = 0; i < strlen(word); i++)
+    if (shortestSz > strlen(str2))
     {
-        //value += tolower(word[i]);
-        value += word[i];
+        shortestSz = strlen(str2);
     }
 
-    return value;
+    // Looping the comparing each char
+    for (size_t i = 0; i < shortestSz; i++)
+    {
+        if (str1[i] > str2[i])
+        {
+            return 1;
+        }
+        else if (str1[i] < str2[i])
+        {
+            return -1;
+        }
+    }
+
+    // Check if the first word is longer
+    if (strlen(str1) < strlen(str2))
+    {
+        return -1;
+    }
+    // Check if the second word is longer
+    else if (strlen(str1) > strlen(str2))
+    {
+        return 1;
+    }
+
+    // It is a match
+    return 0;
 }
 
-char * stringToLower(char *word)
+// Returns a lowercase version of a word 
+char *
+stringToLower(
+    char *word)
 {
-    char *lowWord = malloc(sizeof(*lowWord) * (strlen(word) + 1));
-    if(!lowWord)
+    // Mallocing new empty word
+    char           *lowWord = malloc(sizeof(*lowWord) * (strlen(word) + 1));
+
+    if (!lowWord)
     {
         return NULL;
     }
 
+    // Copying word but as a lowercase version
     for (size_t i = 0; i < strlen(word); i++)
     {
         lowWord[i] = tolower(word[i]);
     }
 
+    // Null terminating
     lowWord[strlen(word)] = '\0';
 
     return lowWord;
-}
-
-void stringToLowerVoid(char *word)
-{
-    for (size_t i = 0; i < strlen(word); i++)
-    {
-        word[i] = tolower(word[i]);
-    }
-    word[strlen(word)] = '\0';
-}
-
-
-// Removes extra chars at the end of stdin
-void
-getCharClean (void)
-{
-    int clearChar = getchar ();
-    while ((clearChar != '\n') && (clearChar != EOF))
-    {
-        clearChar = getchar ();
-    }
 }

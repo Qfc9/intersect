@@ -3,8 +3,10 @@
 
 #include "readIn.h"
 
+// Reads in everything from a fp and put's it into the array given
 void getData(FILE *fp, char ***data, size_t *sz, size_t *cap)
 {
+    // Initializing variables
     int tempStorageMax = 64;
     int storageCounter = 0;
 
