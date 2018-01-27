@@ -4,9 +4,9 @@
 #include <stdlib.h>
 
 typedef struct _tree tree;
-void processLine (tree ** t, char *line);
+void treeAddWords (tree ** t, char *line);
 tree *createTree (void);
-size_t treeHeight (tree * a);
+size_t treeHeight (tree * t);
 void treeInsert (tree ** t, char *word, char *lowWord, size_t value);
 void treePrint (const tree * a);
 void treeDisassemble (tree * a);
