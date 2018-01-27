@@ -91,7 +91,7 @@ void treeIntersects(tree ** t, FILE *fp, size_t index)
         }
 
         // Dynamicly allocating each line in the file as a string
-        while (buf != EOF && buf != 10 && buf != 35 && isgraph(buf))
+        while (buf != EOF && buf != 10 && buf != 32)
         {
             word[wordSz++] = buf;
             buf = fgetc (fp);
@@ -100,7 +100,14 @@ void treeIntersects(tree ** t, FILE *fp, size_t index)
 
         if(wordSz > 0)
         {
-            _treeMarkIntersects(t, word);
+            char *lowWord = stringToLower(word);
+            if(!lowWord)
+            {
+                free(word);
+                return;
+            }
+            _treeMarkIntersects(t, lowWord);
+            free(lowWord);
         }
 
         free(word);
@@ -231,7 +238,6 @@ static void _treeMarkIntersects(tree ** t, char *word)
         return;
     }
 
-    stringToLowerVoid(word);
     tree *foundTree = _treeFind(*t, word);
     if(foundTree)
     {
